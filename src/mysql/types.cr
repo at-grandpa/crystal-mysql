@@ -215,7 +215,19 @@ abstract struct MySql::Type
   decl_type Enum, 0xf7u8
   decl_type Set, 0xf8u8
   decl_type TinyBlob, 0xf9u8
-  decl_type MediumBlob, 0xfau8
+  decl_type MediumBlob, 0xfau8, ::Bytes do
+    def self.write(packet, v : ::Bytes)
+      packet.write_blob v
+    end
+
+    def self.read(packet)
+      packet.read_blob
+    end
+
+    def self.parse(str : ::String)
+      str.to_slice
+    end
+  end
   decl_type LongBlob, 0xfbu8
   decl_type Blob, 0xfcu8, ::Bytes do
     def self.write(packet, v : ::Bytes)
