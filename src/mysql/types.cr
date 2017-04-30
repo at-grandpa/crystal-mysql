@@ -155,7 +155,25 @@ abstract struct MySql::Type
   end
   decl_type LongLong, 0x08u8, ::Int64
   decl_type Int24, 0x09u8
-  decl_type Date, 0x0au8
+  decl_type Date, 0x0au8, ::Time do
+    def self.write(packet, v : ::Time)
+      packet.write_blob UInt8.slice(v.year.to_i16, v.year.to_i16/256, v.month.to_i8, v.day.to_i8)
+    end
+
+    def self.read(packet)
+      pkt = packet.read_byte!
+      return ::Time.new(0) if pkt < 1
+      year = packet.read_fixed_int(2).to_i32
+      month = packet.read_byte!.to_i32
+      day = packet.read_byte!.to_i32
+      return ::Time.new(year, month, day)
+    end
+
+    def self.parse(str : ::String)
+      return ::Time.new(0) if str.starts_with?("0000-00-00")
+      ::Time.parse(str, "%F %H:%M:%S")
+    end
+  end
   decl_type Time, 0x0bu8
   decl_type DateTime, 0x0cu8, ::Time do
     def self.write(packet, v : ::Time)
